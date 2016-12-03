@@ -1,4 +1,6 @@
 class <%= @const_name %>::DSL::Context
+  SCHEMA_YML = File.expand_path('../schema.yml', __FILE__)
+
   def self.eval(dsl, path, options = {})
     self.new(path, options).eval(dsl)
   end
@@ -43,6 +45,8 @@ class <%= @const_name %>::DSL::Context
       allow_empty_args: true,
       scope_hook: scope_hook,
       scope_vars: scope_vars,
+      root_identify: true,
+      schema: File.read(SCHEMA_YML),
     })
   end
 

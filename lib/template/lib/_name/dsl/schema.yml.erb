@@ -1,0 +1,26 @@
+# FIXME: this is an example
+# see http://www.kuwata-lab.com/kwalify/ruby/users-guide.html
+type: map
+mapping:
+  "server":
+    type: seq
+    sequence:
+      - type: map
+        mapping:
+          "_id":
+            type: str
+            required: yes
+          "middleware":
+            type: str
+            required: yes
+          "tag":
+            type: seq
+            sequence:
+              - type: map
+                mapping:
+                  "key":
+                    type: str
+                    required: true
+                  "value":
+                    type: str
+                    required: true

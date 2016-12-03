@@ -33,6 +33,9 @@ class <%= @const_name %>::Client
     warn 'FIXME: Client#walk() not implemented'.yellow
 
     # FIXME: this is an example
+    expected = expected.fetch('server')
+    actual = actual.fetch('server')
+
     updated = false
 
     expected.each do |name, expected_attrs|
