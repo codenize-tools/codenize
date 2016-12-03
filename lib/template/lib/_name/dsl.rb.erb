@@ -1,0 +1,11 @@
+class <%= @const_name %>::DSL
+  class << self
+    def convert(exported)
+      Dslh.deval(exported)
+    end
+
+    def parse(dsl, path, options = {})
+      <%= @const_name %>::DSL::Context.eval(dsl, path, options)
+    end
+  end # of class methods
+end

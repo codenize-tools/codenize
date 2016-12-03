@@ -1,0 +1,104 @@
+class <%= @const_name %>::CLI < Thor
+  include <%= @const_name %>::Logger::Helper
+
+  MAGIC_COMMENT = <<-EOS
+  # -*- mode: ruby -*-
+  # vi: set ft=ruby :
+  EOS
+
+  <%- if @aws -%>
+  class_option :'access-key', aliases: '-k'
+  class_option :'secret-key', aliases: '-s'
+  class_option :region,       aliases: '-r'
+
+  class_option :profile
+  class_option :'credentials-path'
+  <%- end -%>
+
+  class_option :target
+  class_option :color, :type => :boolean, :default => true
+  class_option :debug, :type => :boolean, :default => false
+
+  desc 'apply FILE', 'apply'
+  option :'dry-run', :type => :boolean, :default => false
+  def apply(file)
+    cli = client(options)
+
+    log(:info, "Apply `#{file}`")
+    updated = client(options).apply(file)
+
+    unless updated
+      log(:info, 'No change'.intense_blue)
+    end
+  end
+
+  desc 'export [FILE]', 'export'
+  def export(file = nil)
+    cli = client(options)
+    dsl = cli.export
+
+    if file.nil? or file == '-'
+      puts dsl
+    else
+      log(:info, "Export to `#{file}`")
+      open(file, 'wb') {|f| f.puts dsl }
+    end
+  end
+
+  desc 'version', 'show version'
+  def version
+    puts <%= @const_name %>::VERSION
+  end
+
+  private
+
+  def client(options)
+    options = options.dup
+    underscoreize!(options)
+
+    String.colorize = options[:color]
+    <%= @const_name %>::Logger.instance.set_debug(options[:debug])
+
+    <%- if @aws -%>
+    options[:aws] = {}
+
+    [:access_key_id, :secret_access_key, :region].each do |key|
+      if value = options.delete(key)
+        options[:aws][key] = value
+      end
+    end
+
+    {
+      profile: :profile_name,
+      credentials_path: :path,
+    }.each do |switch_key, option_key|
+      if value = options.delete(switch_key)
+        options[:aws][:credentials] ||= {}
+        options[:aws][:credentials][option_key] = value
+      end
+    end
+
+    Aws.config.update(options[:aws])
+
+    if options[:debug]
+      Aws.config.update(
+        :http_wire_trace => true,
+        :logger => <%= @const_name %>::Logger.instance
+      )
+    end
+    <%- end -%>
+
+    cli = <%= @const_name %>::Client.new(options)
+  end
+
+  def underscoreize!(options)
+    options.keys.each do |key|
+      if key.to_s =~ /-/
+        if value = options.delete(key)
+          key = key.to_s.gsub('-', '_').to_sym
+          options[key] = value
+        end
+      end
+    end
+  end
+end

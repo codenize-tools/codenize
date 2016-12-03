@@ -1,0 +1,51 @@
+#!/usr/bin/env ruby
+$: << File.expand_path('../../lib', __FILE__)
+
+require 'codenize'
+require 'optparse'
+
+Version = Codenize::VERSION
+
+def parse_options(argv)
+  options = {
+    dir: '.',
+  }
+
+  opt = OptionParser.new
+  opt.on('-n', '--name NAME') {|v| options[:name]  = v    }
+  opt.on('-d', '--dir PATH')  {|v| options[:dir]   = v    }
+  opt.on('',   '--aws')       {    options[:aws]   = true }
+  opt.on(''  , '--debug')     {    options[:debug] = true }
+  opt.parse!(argv)
+
+  unless options[:name]
+    puts opt.help
+    exit 1
+  end
+
+  options
+rescue => e
+  $stderr.puts("[ERROR] #{e.message}")
+  exit 1
+end
+
+def main(argv)
+  options = parse_options(argv)
+  client = Codenize::Client.new(options)
+  logger = Codenize::Logger.instance
+
+  if options[:debug]
+    logger.set_debug(options[:debug])
+  end
+
+  client.generate
+rescue => e
+  if options[:debug]
+    raise e
+  else
+    $stderr.puts("[ERROR] #{e.message}")
+    exit 1
+  end
+end
+
+main(ARGV)

@@ -1,0 +1,54 @@
+class <%= @const_name %>::DSL::Context
+  def self.eval(dsl, path, options = {})
+    self.new(path, options).eval(dsl)
+  end
+
+  def initialize(path, options = {})
+    @path = path
+    @options = options
+    @result = {}
+    @templates = {}
+
+    @context = Hashie::Mash.new(
+      :path => path,
+      :options => options,
+    )
+  end
+
+  def eval(dsl)
+    scope_hook = proc do |scope|
+      scope.instance_eval(<<-'EOS')
+        def include_template(template_name, context = {})
+          tmpl = @templates[template_name.to_s]
+
+          unless tmpl
+            raise "Template '#{template_name}' is not defined"
+          end
+
+          context_orig = @context
+          @context = @context.merge(context)
+          instance_eval(&tmplt)
+          @context = context_orig
+        end
+
+        def context
+          @context
+        end
+      EOS
+    end
+
+    scope_vars = {templates: @templates, context: @context}
+
+    Dslh.eval(dsl, {
+      allow_empty_args: true,
+      scope_hook: scope_hook,
+      scope_vars: scope_vars,
+    })
+  end
+
+  private
+
+  def template(name, &block)
+    @templates[name.to_s] = block
+  end
+end

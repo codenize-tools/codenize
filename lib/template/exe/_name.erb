@@ -1,0 +1,147 @@
+#!/usr/bin/env ruby
+$: << File.expand_path('../../lib', __FILE__)
+
+require 'thor'
+require '<%= @name %>'
+require '<%= @name %>/cli'
+
+debug = ARGV.any? {|i| i == '--debug' }
+
+begin
+  <%= @const_name %>::CLI.start(ARGV)
+rescue => e
+  if debug
+    raise e
+  else
+    $stderr.puts "ERROR: #{e}".red
+  end
+end
+
+__END__
+require 'optparse'
+
+Version = <%= @const_name %>::VERSION
+
+MAGIC_COMMENT = <<-EOS
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+EOS
+
+def parse_options(argv)
+  options = {
+    file: '',
+    output: '-',
+    dry_run: false,
+    color: true,
+    <%- if @aws -%>
+    aws: {ssl_verify_peer: false},
+    <%- end -%>
+  }
+
+  opt = OptionParser.new
+
+  <%- if @aws -%>
+  opt.on('-k', '--access-key ACCESS_KEY') {|v| options[:aws][:access_key_id]     = v }
+  opt.on('-s', '--secret-key SECRET_KEY') {|v| options[:aws][:secret_access_key] = v }
+  opt.on('-r', '--region REGION')         {|v| options[:aws][:region]            = v }
+
+  opt.on('', '--profile PROFILE') do |v|
+    options[:aws][:credentials] ||= {}
+    options[:aws][:credentials][:profile_name] = v
+  end
+
+  opt.on('', '--credentials-path PATH') do |v|
+    options[:aws][:credentials] ||= {}
+    options[:aws][:credentials][:path] = v
+  end
+  <%- end -%>
+
+  opt.on('-a', '--apply')         {    options[:mode]    = :apply        }
+  opt.on('-f', '--file FILE')     {|v| options[:file]    = v             }
+  opt.on(''  , '--dry-run')       {    options[:dry_run] = true          }
+  opt.on('-e', '--export')        {    options[:mode]    = :export       }
+  opt.on('-o', '--output FILE')   {|v| options[:output]  = v             }
+  opt.on(''  , '--target REGEXP') {|v| options[:target]  = Regexp.new(v) }
+  opt.on(''  , '--no-color')      {    options[:color]   = false         }
+  opt.on(''  , '--debug')         {    options[:debug]   = true          }
+
+  opt.parse!(argv)
+
+  unless options[:mode]
+    puts opt.help
+    exit 1
+  end
+
+  String.colorize = options[:color]
+  <%= @const_name %>::Logger.instance.set_debug(options[:debug])
+
+  <%- if @aws -%>
+  if options[:aws][:credentials]
+    credentials = Aws::SharedCredentials.new(options[:aws][:credentials])
+    options[:aws][:credentials] = credentials
+  end
+
+  Aws.config.update(options[:aws])
+
+  if options[:debug]
+    Aws.config.update(
+      :http_wire_trace => true,
+      :logger => <%= @const_name %>::Logger.instance
+    )
+  end
+  <%- end -%>
+
+  options
+rescue => e
+  $stderr.puts("[ERROR] #{e.message}")
+  exit 1
+end
+
+def main(argv)
+  options = parse_options(argv)
+  client = <%= @const_name %>::Client.new(options)
+  logger = <%= @const_name %>::Logger.instance
+
+  case options[:mode]
+  when :export
+    exported = client.export
+    output = options[:output]
+
+    dsl = <%= @const_name %>::DSL.convert(exported, options)
+
+    if output == '-'
+      logger.info('# Export')
+      puts dsl
+    else
+      logger.info("Export to '#{output}'")
+
+      open(output, 'wb') do |f|
+        f.puts MAGIC_COMMENT
+        f.puts dsl
+      end
+    end
+  when :apply
+    file = options[:file]
+
+    unless File.exist?(file)
+      raise "DSL file not found (looking for: #{file})"
+    end
+
+    message = "Apply '#{file}'"
+    message << ' (dry-run)' if options[:dry_run]
+    logger.info(message)
+    updated = client.apply(file)
+    logger.info('No change'.intense_blue) unless updated
+  else
+    raise "Unknown mode: #{options[:mode]}"
+  end
+rescue => e
+  if options[:debug]
+    raise e
+  else
+    $stderr.puts("[ERROR] #{e.message}".red)
+    exit 1
+  end
+end
+
+main(ARGV)
