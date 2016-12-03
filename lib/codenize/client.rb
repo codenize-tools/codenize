@@ -7,29 +7,27 @@ class Codenize::Client
   def generate
     FileUtils.chdir(@options[:dir]) do
       name = @options[:name]
-      bundle_gem(name)
+
+      if File.exist?(name)
+        raise "directory already exists: #{name}"
+      end
+
+      Bundler.with_clean_env do
+        sh 'bundle', 'gem', name or raise 'bundle gem faild'
+      end
 
       FileUtils.chdir(name) do
         update_files(name)
         create_files(name)
+        @logger.info 'Adding generated code to git repo'
+        sh 'git', 'add', '.'
       end
     end
   end
 
   private
 
-  def bundle_gem(name)
-    if File.exist?(name)
-      raise "directory already exists: #{name}"
-    end
-
-    Bundler.with_clean_env do
-      sh 'bundle', 'gem', name or raise 'bundle gem faild'
-    end
-  end
-
   def update_files(name)
-
     update!("#{name}.gemspec") do |content|
       content.sub!(/end\z/, ERBh.erbh(<<-EOS, aws: @options[:aws]))
   <%- if @aws -%>
