@@ -1,6 +1,8 @@
 class <%= @const_name %>::Exporter
   include <%= @const_name %>::Utils::TargetMatcher
 
+  YAML_PATH = File.expand_path('../schema.yml', )
+
   def initialize(client, options = {})
     @client = client
     @options = options

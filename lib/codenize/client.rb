@@ -34,7 +34,7 @@ class Codenize::Client
   spec.add_dependency 'aws-sdk'
   <%- end -%>
   spec.add_dependency 'diffy'
-  spec.add_dependency 'dslh'
+  spec.add_dependency 'dslh', '>= 0.4.0'
   spec.add_dependency 'hashie'
   #spec.add_dependency 'parallel'
   #spec.add_dependency 'pp_sort_hash'
