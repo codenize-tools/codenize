@@ -1,3 +1,5 @@
+require 'bundler'
+require "bundler/vendor/thor/lib/thor/base"
 require 'erbh'
 require 'fileutils'
 require 'logger'
