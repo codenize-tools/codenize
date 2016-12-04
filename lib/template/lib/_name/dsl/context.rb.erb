@@ -12,8 +12,8 @@ class <%= @const_name %>::DSL::Context
     @templates = {}
 
     @context = Hashie::Mash.new(
-      :path => path,
-      :options => options,
+      path: path,
+      options: options,
     )
   end
 
@@ -29,7 +29,7 @@ class <%= @const_name %>::DSL::Context
 
           context_orig = @context
           @context = @context.merge(context)
-          instance_eval(&tmplt)
+          instance_eval(&tmpl)
           @context = context_orig
         end
 

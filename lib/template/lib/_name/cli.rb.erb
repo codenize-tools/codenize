@@ -16,11 +16,11 @@ class <%= @const_name %>::CLI < Thor
   <%- end -%>
 
   class_option :target
-  class_option :color, :type => :boolean, :default => true
-  class_option :debug, :type => :boolean, :default => false
+  class_option :color, type: :boolean, default: true
+  class_option :debug, type: :boolean, default: false
 
   desc 'apply FILE', 'apply'
-  option :'dry-run', :type => :boolean, :default => false
+  option :'dry-run', type: :boolean, default: false
   def apply(file)
     cli = client(options)
 
@@ -82,8 +82,8 @@ class <%= @const_name %>::CLI < Thor
 
     if options[:debug]
       Aws.config.update(
-        :http_wire_trace => true,
-        :logger => <%= @const_name %>::Logger.instance
+        http_wire_trace: true,
+        logger: <%= @const_name %>::Logger.instance
       )
     end
     <%- end -%>

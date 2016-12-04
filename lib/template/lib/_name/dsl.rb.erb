@@ -1,7 +1,7 @@
 class <%= @const_name %>::DSL
   class << self
     def convert(exported)
-      Dslh.deval(exported, :root_identify => true)
+      Dslh.deval(exported, root_identify: true)
     end
 
     def parse(dsl, path, options = {})
