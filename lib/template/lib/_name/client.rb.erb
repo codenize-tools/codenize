@@ -66,10 +66,10 @@ class <%= @const_name %>::Client
   def load_file(file)
     if file.kind_of?(String)
       open(file) do |f|
-        <%= @const_name %>::DSL.parse(f.read, file)
+        <%= @const_name %>::DSL.parse(f.read, file, @options)
       end
     elsif file.respond_to?(:read)
-      <%= @const_name %>::DSL.parse(file.read, file.path)
+      <%= @const_name %>::DSL.parse(file.read, file.path, @options)
     else
       raise TypeError, "can't convert #{file} into File"
     end

@@ -1,4 +1,6 @@
 class <%= @const_name %>::DSL::Context
+  include <%= @const_name %>::Logger::Helper
+
   SCHEMA_YML = File.expand_path('../schema.yml', __FILE__)
 
   def self.eval(dsl, path, options = {})
@@ -20,6 +22,10 @@ class <%= @const_name %>::DSL::Context
   def eval(dsl)
     scope_hook = proc do |scope|
       scope.instance_eval(<<-'EOS')
+        def template(name, &block)
+          @templates[name.to_s] = block
+        end
+
         def include_template(template_name, context = {})
           tmpl = @templates[template_name.to_s]
 
@@ -41,13 +47,22 @@ class <%= @const_name %>::DSL::Context
 
     scope_vars = {templates: @templates, context: @context}
 
-    Dslh.eval(dsl, {
-      allow_empty_args: true,
-      scope_hook: scope_hook,
-      scope_vars: scope_vars,
-      root_identify: true,
-      schema: File.read(SCHEMA_YML),
-    })
+    begin
+      Dslh.eval(dsl, {
+        filename: @path,
+        allow_empty_args: true,
+        scope_hook: scope_hook,
+        scope_vars: scope_vars,
+        root_identify: true,
+        schema: File.read(SCHEMA_YML),
+      })
+    rescue => e
+      if @options[:debug]
+        log(:debug, "Parsed DSL: \n" + e.data.pretty_inspect)
+      end
+
+      raise e
+    end
   end
 
   private
