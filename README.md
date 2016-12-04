@@ -25,6 +25,7 @@ codenize -n hello
 cd hello
 sed -i.bak 's/TODO://' hello.gemspec
 sed -i.bak 's/spec.homepage/#spec.homepage/' hello.gemspec
+bundle install
 bundle exec ./exe/hello export hello.rb
 bundle exec ./exe/hello apply hello.rb
 ```
