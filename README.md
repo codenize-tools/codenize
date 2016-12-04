@@ -31,7 +31,7 @@ bundle exec ./exe/hello apply hello.rb
 
 ## Example implementation
 
-- https://github.com/winebarrel/ecman/blob/ea6e7267521cb6f1384ebe24163ac38efc07cc81/ecman.rb
+- https://github.com/winebarrel/ecman/commit/941555eee0ca59894efc9b3b3b52e8e66b5a63fa
 
 
 ## Related links
