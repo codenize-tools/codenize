@@ -1,6 +1,6 @@
 # Codenize
 
-Generate scaffold for Codenize.tools.
+Generate scaffold for [Codenize.tools](https://codenize.tools/).
 
 ## Installation
 
@@ -32,8 +32,3 @@ bundle exec ./exe/hello apply hello.rb
 ## Example implementation
 
 - https://github.com/winebarrel/ecman/commit/941555eee0ca59894efc9b3b3b52e8e66b5a63fa
-
-
-## Related links
-
-- [Codenize.tools](https://codenize.tools/)
