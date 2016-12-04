@@ -3,6 +3,7 @@ class <%= @const_name %>::Client
 
   def initialize(options = {})
     @options = options
+    # FIXME: create api client
     @client = @options[:client] # || YourService::Client.new
     @driver = <%= @const_name %>::Driver.new(@client, options)
     @exporter = <%= @const_name %>::Exporter.new(@client, @options)

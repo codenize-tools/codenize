@@ -54,9 +54,9 @@ class <%= @const_name %>::DSL::Context
         scope_hook: scope_hook,
         scope_vars: scope_vars,
         root_identify: true,
-        schema: File.read(SCHEMA_YML),
+        schema_path: SCHEMA_YML,
       })
-    rescue => e
+    rescue Dslh::ValidationError => e
       if @options[:debug]
         log(:debug, "Parsed DSL: \n" + e.data.pretty_inspect)
       end
