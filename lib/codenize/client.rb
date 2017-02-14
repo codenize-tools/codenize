@@ -13,7 +13,13 @@ class Codenize::Client
       end
 
       Bundler.with_clean_env do
-        sh 'bundle', 'gem', name or raise 'bundle gem faild'
+        args = ['bundle', 'gem', name]
+
+        args.push('--test', 'rspec') unless Bundler.settings['GEM__TEST']
+        args.push('--mit') unless Bundler.settings['GEM__MIT']
+        args.push('--coc') unless Bundler.settings['GEM__COC']
+
+        sh(*args) or raise 'bundle gem faild'
       end
 
       FileUtils.chdir(name) do
